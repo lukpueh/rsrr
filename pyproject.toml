@@ -7,10 +7,13 @@ authors = [
     { name = "Lukas Puehringer", email = "lukas.puehringer@eclipse-foundation.org" }
 ]
 requires-python = ">=3.13.2"
-dependencies = []
+dependencies = [
+    "click>=8.3.1",
+    "httpx>=0.28.1",
+]
 
 [project.scripts]
-rsrr = "rsrr:main"
+rsrr = "rsrr.cli:main"
 
 [build-system]
 requires = ["uv_build>=0.9.17,<0.10.0"]
