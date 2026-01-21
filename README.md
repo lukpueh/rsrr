@@ -13,16 +13,16 @@ pip install -e .
 
 ```bash
 # Run all checks
-rsrr
+rsrr run
 
 # Run specific checks
-rsrr api_health random_number
+rsrr run api_health random_number
 
 # List available checks
-rsrr --list
+rsrr list
 
 # Output as JSON
-rsrr --format json
+rsrr run --format json
 ```
 
 ## Adding a New Check

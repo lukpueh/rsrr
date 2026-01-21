@@ -8,20 +8,33 @@ from .formatters import FORMATTERS
 from .runner import discover_checks, run_checks
 
 
-def list_checks(checks: dict) -> None:
-    """Print available checks."""
+def get_all_checks() -> dict:
+    """Discover and return all available checks."""
+    checks_dir = Path(__file__).parent / "checks"
+    return discover_checks(checks_dir)
+
+
+@click.group(invoke_without_command=True)
+@click.pass_context
+def main(ctx: click.Context) -> None:
+    """Run predefined checks and report results."""
+    if ctx.invoked_subcommand is None:
+        click.echo(ctx.get_help())
+
+
+@main.command("list")
+def list_cmd() -> None:
+    """List available checks."""
+    all_checks = get_all_checks()
     click.echo("Available checks:\n")
-    for check_id, check_cls in sorted(checks.items()):
+    for check_id, check_cls in sorted(all_checks.items()):
         click.echo(f"  {check_id}")
         click.echo(f"    {check_cls.name}: {check_cls.comment}")
         click.echo()
 
 
-@click.command()
+@main.command()
 @click.argument("checks", nargs=-1, metavar="CHECK")
-@click.option(
-    "-l", "--list", "list_", is_flag=True, help="List available checks and exit"
-)
 @click.option(
     "-f",
     "--format",
@@ -30,25 +43,24 @@ def list_checks(checks: dict) -> None:
     default="plain",
     help="Output format (default: plain)",
 )
-def main(checks: tuple[str, ...], list_: bool, format_: str) -> None:
-    """Run predefined checks and report results."""
-    sys.exit(asyncio.run(main_async(checks, list_, format_)))
+def run(checks: tuple[str, ...], format_: str) -> None:
+    """Run checks.
+
+    If CHECK arguments are provided, only those checks are run.
+    Otherwise, all available checks are run.
+    """
+    sys.exit(asyncio.run(run_async(checks, format_)))
 
 
-async def main_async(checks: tuple[str, ...], list_: bool, format_: str) -> int:
-    checks_dir = Path(__file__).parent / "checks"
-    all_checks = discover_checks(checks_dir)
-
-    if list_:
-        list_checks(all_checks)
-        return 0
+async def run_async(checks: tuple[str, ...], format_: str) -> int:
+    all_checks = get_all_checks()
 
     # Filter checks if specific ones requested
     if checks:
         unknown = set(checks) - set(all_checks.keys())
         if unknown:
             click.echo(f"Unknown checks: {', '.join(sorted(unknown))}", err=True)
-            click.echo("Use --list to see available checks", err=True)
+            click.echo("Use 'rsrr list' to see available checks", err=True)
             return 1
         checks_to_run = {k: v for k, v in all_checks.items() if k in checks}
     else:
