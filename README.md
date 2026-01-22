@@ -13,87 +13,42 @@ pip install -e .
 
 ```bash
 # Run all checks
-rsrr run
+rsrr run [opts]
 
 # Run specific checks
-rsrr run api_health random_number
+rsrr run --gh-org eclipse-csi gh_org gh_dotgithub
 
 # List available checks
 rsrr list
 
-# Output as JSON
-rsrr run --format json
 ```
 
 ## Adding a New Check
 
-Create a new file in `rsrr/checks/`, e.g., `my_check.py`:
+Create a new file in `rsrr/checks/`, e.g., `check_answer.py` and add a `Check`
+implementation, e.g.:
 
 ```python
-import asyncio
-import urllib.request
 
-from .base import BaseCheck
-
+from .base import BaseCheck, ScalarResult
 
 class Check(BaseCheck):
-    name = "My Check"
-    comment = "Description of what this check does"
+    name = "Check Answer"
+    comment = "Get the answer to the Ultimate Question of Life"
 
-    async def run(self) -> int:  # Return int, float, bool, or str
-        loop = asyncio.get_event_loop()
-        req = urllib.request.Request("https://api.example.com/endpoint")
-        resp = await loop.run_in_executor(
-            None, lambda: urllib.request.urlopen(req, timeout=10)
-        )
-        # Parse response and return scalar value
+    async def run(self) -> ScalarResult:
         return 42
 ```
 
-Or with `httpx` for cleaner async HTTP (add to dependencies):
+The check is automatically discovered and available as `check_answer` (derived from the filename).
 
-```python
-import httpx
-
-from .base import BaseCheck
-
-
-class Check(BaseCheck):
-    name = "My Check"
-    comment = "Description of what this check does"
-
-    async def run(self) -> int:
-        async with httpx.AsyncClient() as client:
-            resp = await client.get("https://api.example.com/endpoint")
-            return resp.json()["value"]
-```
-
-The check is automatically discovered and available as `my_check` (derived from the filename).
-
-## Output Formats
-
-### Plain (default)
+## Example output
 
 ```
-✓ API Health [api_health]: True
-  # Returns true if httpbin responds with 200
-✓ Random Number [random_number]: 42
-  # Fetches a random integer from random.org
-```
-
-### JSON
-
-```json
-[
-  {
-    "id": "api_health",
-    "name": "API Health",
-    "comment": "Returns true if httpbin responds with 200",
-    "value": true,
-    "success": true,
-    "error": null
-  }
-]
+✓ GitHub .github Repo [gh_dotgithub]: True
+  # Checks if the organization has a .github repository
+✓ GitHub Organization [gh_org]: True
+  # Checks if the GitHub organization is indeed an organization
 ```
 
 ## Exit Codes
