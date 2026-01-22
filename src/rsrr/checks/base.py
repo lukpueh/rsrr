@@ -10,18 +10,6 @@ class Config:
     gh_org: str | None = None
     gh_repo: str | None = None
 
-    @property
-    def gh_org_url(self) -> str | None:
-        if not self.gh_org:
-            raise ValueError("GitHub org name required")
-        return f"https://github.com/{self.gh_org}"
-
-    @property
-    def gh_repo_url(self) -> str | None:
-        if not all(self.gh_org, self.gh_repo):
-            raise ValueError("GitHub org and repo name required")
-        return f"https://github.com/{self.gh_org}/{self.gh_repo}"
-
 
 @dataclass
 class CheckResult:
