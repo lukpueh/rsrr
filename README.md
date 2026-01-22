@@ -16,7 +16,7 @@ pip install -e .
 rsrr run [opts]
 
 # Run specific checks
-rsrr run --gh-org eclipse-csi gh_org gh_dotgithub
+rsrr run --gh-org eclipse-csi -- gh_org gh_dotgithub
 
 # List available checks
 rsrr list
@@ -45,6 +45,8 @@ The check is automatically discovered and available as `check_answer` (derived f
 ## Example output
 
 ```
+rsrr run --gh-org eclipse-csi
+
 ✓ GitHub .github Repo [gh_dotgithub]: True
   # Checks if the organization has a .github repository
 ✓ GitHub Organization [gh_org]: True
