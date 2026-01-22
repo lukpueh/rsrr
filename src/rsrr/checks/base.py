@@ -9,6 +9,7 @@ ScalarResult = Union[int, float, bool, str]
 class Config:
     gh_org: str | None = None
     gh_repo: str | None = None
+    ef_project_id: str | None = None
 
 
 @dataclass

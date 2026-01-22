@@ -49,6 +49,11 @@ def list_cmd() -> None:
     help="GitHub repository name",
 )
 @click.option(
+    "--ef-project-id",
+    default=None,
+    help="Eclipse Foundation project ID",
+)
+@click.option(
     "-v",
     "--verbose",
     is_flag=True,
@@ -58,6 +63,7 @@ def run(
     checks: tuple[str, ...],
     gh_org: str | None,
     gh_repo: str | None,
+    ef_project_id: str | None,
     verbose: bool,
 ) -> None:
     """Run checks.
@@ -65,7 +71,7 @@ def run(
     If CHECK arguments are provided, only those checks are run.
     Otherwise, all available checks are run.
     """
-    config = Config(gh_org=gh_org, gh_repo=gh_repo)
+    config = Config(gh_org=gh_org, gh_repo=gh_repo, ef_project_id=ef_project_id)
     formatter_config = FormatterConfig(verbose=verbose)
     sys.exit(asyncio.run(run_async(checks, config, formatter_config)))
 
