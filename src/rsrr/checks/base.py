@@ -11,6 +11,12 @@ class Config:
     gh_repo: str | None = None
     ef_project_id: str | None = None
 
+    @property
+    def ef_project_id_normalized(self) -> str | None:
+        if self.ef_project_id is None:
+            return None
+        return self.ef_project_id.replace(".", "_")
+
 
 @dataclass
 class CheckResult:
