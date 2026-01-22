@@ -5,7 +5,7 @@ from pathlib import Path
 import click
 
 from .checks import Config
-from .formatters import PlainFormatter
+from .formatters import FormatterConfig, PlainFormatter
 from .runner import discover_checks, run_checks
 
 
@@ -48,8 +48,17 @@ def list_cmd() -> None:
     default=None,
     help="GitHub repository name",
 )
+@click.option(
+    "-v",
+    "--verbose",
+    is_flag=True,
+    help="Enable verbose output",
+)
 def run(
-    checks: tuple[str, ...], gh_org: str | None, gh_repo: str | None
+    checks: tuple[str, ...],
+    gh_org: str | None,
+    gh_repo: str | None,
+    verbose: bool,
 ) -> None:
     """Run checks.
 
@@ -57,10 +66,13 @@ def run(
     Otherwise, all available checks are run.
     """
     config = Config(gh_org=gh_org, gh_repo=gh_repo)
-    sys.exit(asyncio.run(run_async(checks, config)))
+    formatter_config = FormatterConfig(verbose=verbose)
+    sys.exit(asyncio.run(run_async(checks, config, formatter_config)))
 
 
-async def run_async(checks: tuple[str, ...], config: Config) -> int:
+async def run_async(
+    checks: tuple[str, ...], config: Config, formatter_config: FormatterConfig
+) -> int:
     all_checks = get_all_checks()
 
     # Filter checks if specific ones requested
@@ -80,7 +92,7 @@ async def run_async(checks: tuple[str, ...], config: Config) -> int:
 
     results = await run_checks(checks_to_run, config)
 
-    click.echo(PlainFormatter().format(results))
+    click.echo(PlainFormatter(formatter_config).format(results))
 
     # Exit with error if any check failed
     failed = any(not result.success for _, result in results)
