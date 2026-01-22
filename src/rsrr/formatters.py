@@ -24,26 +24,3 @@ class PlainFormatter(Formatter):
             lines.append(f"{status} {result.name} [{check_id}]: {value_str}")
             lines.append(f"  # {result.comment}")
         return "\n".join(lines)
-
-
-class JsonFormatter(Formatter):
-    """JSON output formatter."""
-
-    def format(self, results: list[tuple[str, CheckResult]]) -> str:
-        data = []
-        for check_id, result in results:
-            data.append({
-                "id": check_id,
-                "name": result.name,
-                "comment": result.comment,
-                "value": result.value,
-                "success": result.success,
-                "error": result.error,
-            })
-        return json.dumps(data, indent=2)
-
-
-FORMATTERS: dict[str, type[Formatter]] = {
-    "plain": PlainFormatter,
-    "json": JsonFormatter,
-}
