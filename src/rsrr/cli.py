@@ -18,7 +18,9 @@ def get_all_checks() -> dict:
 @click.group(invoke_without_command=True)
 @click.pass_context
 def main(ctx: click.Context) -> None:
-    """Run predefined checks and report results."""
+    """Rapid Security Review Runner -- Runs an extensible set of checks for
+    Eclipse Foundation Rapid Security Reviews."""
+
     if ctx.invoked_subcommand is None:
         click.echo(ctx.get_help())
 
