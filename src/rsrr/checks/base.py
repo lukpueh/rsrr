@@ -1,8 +1,26 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Union
+from typing import Literal, Union
 
 ScalarResult = Union[int, float, bool, str]
+
+Category = Literal[
+    "Blueprints",
+    "CI/CD: Releases",
+    "CI/CD: Tools",
+    "Communication",
+    "Community Health Files",
+    "Contributions",
+    "Otterdog",
+    "SBOM",
+    "Security Posture",
+    "Security Team",
+    "Setup",
+    "Static Analysis",
+    "Survey",
+    "Vulnerability Management",
+    "Vulnerability Reporting",
+]
 
 
 @dataclass
@@ -38,6 +56,7 @@ class BaseCheck(ABC):
     To create a new check, subclass this and implement:
     - name: str - Display name for the check
     - comment: str - Description of what the check does
+    - category: Category - One of the predefined categories
     - run() - Async method that returns a scalar value
 
     The config is available via self.config.
@@ -45,6 +64,7 @@ class BaseCheck(ABC):
 
     name: str
     comment: str
+    category: Category
 
     def __init__(self, config: Config) -> None:
         self.config = config
