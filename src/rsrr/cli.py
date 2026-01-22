@@ -4,6 +4,7 @@ from pathlib import Path
 
 import click
 
+from .checks import Config
 from .formatters import FORMATTERS
 from .runner import discover_checks, run_checks
 
@@ -43,16 +44,29 @@ def list_cmd() -> None:
     default="plain",
     help="Output format (default: plain)",
 )
-def run(checks: tuple[str, ...], format_: str) -> None:
+@click.option(
+    "--gh-org",
+    default=None,
+    help="GitHub organization name",
+)
+@click.option(
+    "--gh-repo",
+    default=None,
+    help="GitHub repository name",
+)
+def run(
+    checks: tuple[str, ...], format_: str, gh_org: str | None, gh_repo: str | None
+) -> None:
     """Run checks.
 
     If CHECK arguments are provided, only those checks are run.
     Otherwise, all available checks are run.
     """
-    sys.exit(asyncio.run(run_async(checks, format_)))
+    config = Config(gh_org=gh_org, gh_repo=gh_repo)
+    sys.exit(asyncio.run(run_async(checks, format_, config)))
 
 
-async def run_async(checks: tuple[str, ...], format_: str) -> int:
+async def run_async(checks: tuple[str, ...], format_: str, config: Config) -> int:
     all_checks = get_all_checks()
 
     # Filter checks if specific ones requested
@@ -70,7 +84,7 @@ async def run_async(checks: tuple[str, ...], format_: str) -> int:
         click.echo("No checks to run", err=True)
         return 1
 
-    results = await run_checks(checks_to_run)
+    results = await run_checks(checks_to_run, config)
 
     formatter = FORMATTERS[format_]()
     click.echo(formatter.format(results))

@@ -6,6 +6,12 @@ ScalarResult = Union[int, float, bool, str]
 
 
 @dataclass
+class Config:
+    gh_org: str | None = None
+    gh_repo: str | None = None
+
+
+@dataclass
 class CheckResult:
     name: str
     comment: str
@@ -21,10 +27,15 @@ class BaseCheck(ABC):
     - name: str - Display name for the check
     - comment: str - Description of what the check does
     - run() - Async method that returns a scalar value
+
+    The config is available via self.config.
     """
 
     name: str
     comment: str
+
+    def __init__(self, config: Config) -> None:
+        self.config = config
 
     @abstractmethod
     async def run(self) -> ScalarResult:

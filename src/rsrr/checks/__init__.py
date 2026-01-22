@@ -1,3 +1,3 @@
-from .base import BaseCheck, CheckResult, ScalarResult
+from .base import BaseCheck, CheckResult, Config, ScalarResult
 
-__all__ = ["BaseCheck", "CheckResult", "ScalarResult"]
+__all__ = ["BaseCheck", "CheckResult", "Config", "ScalarResult"]

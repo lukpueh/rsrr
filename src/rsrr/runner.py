@@ -3,7 +3,7 @@ import importlib
 import pkgutil
 from pathlib import Path
 
-from .checks import BaseCheck, CheckResult
+from .checks import BaseCheck, CheckResult, Config
 
 
 def discover_checks(package_path: Path) -> dict[str, type[BaseCheck]]:
@@ -27,9 +27,11 @@ def discover_checks(package_path: Path) -> dict[str, type[BaseCheck]]:
     return checks
 
 
-async def run_check(check_id: str, check_cls: type[BaseCheck]) -> CheckResult:
+async def run_check(
+    check_id: str, check_cls: type[BaseCheck], config: Config
+) -> CheckResult:
     """Run a single check and return the result."""
-    check = check_cls()
+    check = check_cls(config)
     try:
         value = await check.run()
         return CheckResult(
@@ -49,9 +51,11 @@ async def run_check(check_id: str, check_cls: type[BaseCheck]) -> CheckResult:
 
 
 async def run_checks(
-    checks: dict[str, type[BaseCheck]],
+    checks: dict[str, type[BaseCheck]], config: Config
 ) -> list[tuple[str, CheckResult]]:
     """Run all checks in parallel and return results."""
-    tasks = [run_check(check_id, check_cls) for check_id, check_cls in checks.items()]
+    tasks = [
+        run_check(check_id, check_cls, config) for check_id, check_cls in checks.items()
+    ]
     results = await asyncio.gather(*tasks)
     return list(zip(checks.keys(), results))
