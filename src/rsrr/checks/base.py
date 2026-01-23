@@ -29,13 +29,6 @@ class CheckResult:
 
 class BaseCheck(ABC):
     """Base class for all checks.
-
-    To create a new check, subclass this and implement:
-    - name: str - Display name for the check
-    - comment: str - Description of what the check does
-    - run() - Async method that returns a scalar value
-
-    The config is available via self.config.
     """
 
     name: str

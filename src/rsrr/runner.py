@@ -7,7 +7,7 @@ from .checks import BaseCheck, CheckResult, Config
 
 
 def discover_checks(package_path: Path) -> dict[str, type[BaseCheck]]:
-    """Discover all check classes in the checks package.
+    """Discover all check implementations in the checks package.
 
     Returns a dict mapping check IDs (module names) to check classes.
     """
@@ -32,22 +32,12 @@ async def run_check(
 ) -> CheckResult:
     """Run a single check and return the result."""
     check = check_cls(config)
+    common = {"name": check.name, "comment": check.comment}
     try:
         value = await check.run()
-        return CheckResult(
-            name=check.name,
-            comment=check.comment,
-            value=value,
-            success=True,
-        )
+        return CheckResult(**common, value=value, success=True)
     except Exception as e:
-        return CheckResult(
-            name=check.name,
-            comment=check.comment,
-            value=None,
-            success=False,
-            error=str(e),
-        )
+        return CheckResult(**common, value=None, success=False, error=str(e))
 
 
 async def run_checks(
