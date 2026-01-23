@@ -7,7 +7,9 @@ from .base import BaseCheck
 
 class Check(BaseCheck):
     name = "GitHub Distinct Committers Past Year"
-    comment = "Gets the number of distinct committers in the organization in the past year"
+    comment = (
+        "Gets the number of distinct committers in the organization in the past year"
+    )
 
     async def run(self) -> int:
         if not self.config.gh_org:

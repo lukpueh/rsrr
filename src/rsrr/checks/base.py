@@ -28,8 +28,7 @@ class CheckResult:
 
 
 class BaseCheck(ABC):
-    """Base class for all checks.
-    """
+    """Base class for all checks."""
 
     name: str
     comment: str

@@ -17,9 +17,7 @@ def discover_checks(package_path: Path) -> dict[str, type[BaseCheck]]:
         if module_info.name in ("base", "__init__"):
             continue
 
-        module = importlib.import_module(
-            f".checks.{module_info.name}", package="rsrr"
-        )
+        module = importlib.import_module(f".checks.{module_info.name}", package="rsrr")
 
         if hasattr(module, "Check") and issubclass(module.Check, BaseCheck):
             checks[module_info.name] = module.Check

@@ -18,7 +18,9 @@ class Check(BaseCheck):
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 "https://api.github.com/search/commits",
-                params={"q": f"org:{self.config.gh_org} committer-date:>{one_year_ago}"},
+                params={
+                    "q": f"org:{self.config.gh_org} committer-date:>{one_year_ago}"
+                },
                 headers={
                     "Accept": "application/vnd.github.v3+json",
                 },
