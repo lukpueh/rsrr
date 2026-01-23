@@ -41,7 +41,7 @@ async def run_check(
 async def run_checks(
     checks: dict[str, type[BaseCheck]], config: Config
 ) -> list[tuple[str, CheckResult]]:
-    """Run all checks in parallel and return results."""
+    """Run all checks in parallel and return a list of (check name, result) tuples."""
     tasks = [
         run_check(check_id, check_cls, config) for check_id, check_cls in checks.items()
     ]
