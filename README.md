@@ -1,12 +1,12 @@
 # Rapid Security Review Runner
 
-A CLI tool to run automated checks for Eclipse Foundation Rapid Security Reviews.
-
+An extensible CLI to run automated checks for Eclipse Foundation Rapid Security
+Reviews.
 
 ## Installation
 
 ```bash
-pip install -e .
+uv tool install git+https://github.com/eclipse-csi/rsrr
 ```
 
 ## Usage
@@ -16,44 +16,27 @@ pip install -e .
 rsrr run [opts]
 
 # Run specific checks
-rsrr run --gh-org eclipse-csi -- gh_org gh_dotgithub
+rsrr run --ef-project-id technology.csi -- ef_committers_count
 
 # List available checks
 rsrr list
 
 ```
 
-## Adding a New Check
+## Adding a new Check
 
-Create a new file in `rsrr/checks/`, e.g., `check_answer.py` and add a `Check`
-implementation, e.g.:
+Create a new file in `src/rsrr/checks/` with a descriptive name, e.g.
+`ultimate_answer.py`, and add a `Check` implementation, e.g.
 
 ```python
-
-from .base import BaseCheck, ScalarResult
+from .base import BaseCheck
 
 class Check(BaseCheck):
-    name = "Check Answer"
+    name = "Ultimate Answer"
     comment = "Get the answer to the Ultimate Question of Life"
 
-    async def run(self) -> ScalarResult:
+    async def run(self) -> int:
         return 42
 ```
 
-The check is automatically discovered and available as `check_answer` (derived from the filename).
-
-## Example output
-
-```
-rsrr run --gh-org eclipse-csi
-
-✓ GitHub .github Repo [gh_dotgithub]: True
-  # Checks if the organization has a .github repository
-✓ GitHub Organization [gh_org]: True
-  # Checks if the GitHub organization is indeed an organization
-```
-
-## Exit Codes
-
-- `0` - All checks passed
-- `1` - One or more checks failed
+Browse existing [`checks/`](src/rsrr/checks) for real-world examples.
