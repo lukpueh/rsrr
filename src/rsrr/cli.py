@@ -6,7 +6,6 @@ import json
 import click
 
 from .checks import Context
-from .formatters import FormatterConfig
 from .runner import discover_checks, run_checks
 
 
@@ -61,12 +60,11 @@ def run(
     Otherwise, all available checks are run.
     """
     ctx = Context(ef_project_id=ef_project_id)
-    formatter_config = FormatterConfig(verbose=verbose)
-    sys.exit(asyncio.run(run_async(checks, ctx, formatter_config)))
+    sys.exit(asyncio.run(run_async(checks, ctx, verbose)))
 
 
 async def run_async(
-    checks: tuple[str, ...], ctx: Context, formatter_config: FormatterConfig
+    checks: tuple[str, ...], ctx: Context, verbose: bool
 ) -> int:
     all_checks = get_all_checks()
 
@@ -89,7 +87,7 @@ async def run_async(
 
     # Print status info to stderr
     # TODO: Use logging for this instead?
-    if formatter_config.verbose:
+    if verbose:
         for id_, result in results:
             status = f"✓ {id_}" if result.success else f"✗ {id_}: {result.error}"
             click.echo(status, err=True)
