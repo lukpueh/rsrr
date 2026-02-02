@@ -36,7 +36,7 @@ class Check(BaseCheck):
     comment = "Get the answer to the Ultimate Question of Life"
 
     async def run(self) -> int:
-        return 42
+        return {"ultimate_answer": 42}
 ```
 
 Browse existing [`checks/`](src/rsrr/checks) for real-world examples.

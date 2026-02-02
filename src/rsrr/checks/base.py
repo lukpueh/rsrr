@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Union
-
-ScalarResult = Union[int, float, bool, str]
+from typing import Any
 
 
 @dataclass
@@ -20,7 +18,7 @@ class Context:
 class CheckResult:
     name: str
     comment: str
-    value: ScalarResult | None
+    value: dict[str, Any] | None
     success: bool
     error: str | None = None
 
@@ -35,6 +33,4 @@ class BaseCheck(ABC):
         self.ctx = ctx
 
     @abstractmethod
-    async def run(self) -> ScalarResult:
-        """Execute the check and return a scalar value (int, float, bool, or str)."""
-        ...
+    async def run(self) -> dict[str, Any]: ...
