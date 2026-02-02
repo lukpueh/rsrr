@@ -1,11 +1,12 @@
 import asyncio
 import sys
 from pathlib import Path
+import json
 
 import click
 
 from .checks import Context
-from .formatters import FormatterConfig, PlainFormatter
+from .formatters import FormatterConfig
 from .runner import discover_checks, run_checks
 
 
@@ -86,7 +87,15 @@ async def run_async(
 
     results = await run_checks(checks_to_run, ctx)
 
-    click.echo(PlainFormatter(formatter_config).format(results))
+    # Print status info to stderr
+    # TODO: Use logging for this instead?
+    if formatter_config.verbose:
+        for id_, result in results:
+            status = f"✓ {id_}" if result.success else f"✗ {id_}: {result.error}"
+            click.echo(status, err=True)
+
+    # Print json data to stdout
+    click.echo(json.dumps(ctx.data))
 
     # Exit with error if any check failed
     failed = any(not result.success for _, result in results)
