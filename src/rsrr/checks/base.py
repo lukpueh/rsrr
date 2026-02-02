@@ -1,11 +1,12 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 
 @dataclass
 class Context:
     ef_project_id: str | None = None
+    data: dict[str, Any] = field(default_factory=dict)
 
     @property
     def ef_project_id_normalized(self) -> str | None:
