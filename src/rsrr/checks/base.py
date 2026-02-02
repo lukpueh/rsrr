@@ -6,7 +6,7 @@ ScalarResult = Union[int, float, bool, str]
 
 
 @dataclass
-class Config:
+class Context:
     ef_project_id: str | None = None
 
     @property
@@ -31,8 +31,8 @@ class BaseCheck(ABC):
     name: str
     comment: str
 
-    def __init__(self, config: Config) -> None:
-        self.config = config
+    def __init__(self, ctx: Context) -> None:
+        self.ctx = ctx
 
     @abstractmethod
     async def run(self) -> ScalarResult:

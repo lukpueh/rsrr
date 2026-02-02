@@ -4,7 +4,7 @@ from pathlib import Path
 
 import click
 
-from .checks import Config
+from .checks import Context
 from .formatters import FormatterConfig, PlainFormatter
 from .runner import discover_checks, run_checks
 
@@ -59,13 +59,13 @@ def run(
     If CHECK arguments are provided, only those checks are run.
     Otherwise, all available checks are run.
     """
-    config = Config(ef_project_id=ef_project_id)
+    ctx = Context(ef_project_id=ef_project_id)
     formatter_config = FormatterConfig(verbose=verbose)
-    sys.exit(asyncio.run(run_async(checks, config, formatter_config)))
+    sys.exit(asyncio.run(run_async(checks, ctx, formatter_config)))
 
 
 async def run_async(
-    checks: tuple[str, ...], config: Config, formatter_config: FormatterConfig
+    checks: tuple[str, ...], ctx: Context, formatter_config: FormatterConfig
 ) -> int:
     all_checks = get_all_checks()
 
@@ -84,7 +84,7 @@ async def run_async(
         click.echo("No checks to run", err=True)
         return 1
 
-    results = await run_checks(checks_to_run, config)
+    results = await run_checks(checks_to_run, ctx)
 
     click.echo(PlainFormatter(formatter_config).format(results))
 
