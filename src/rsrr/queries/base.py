@@ -1,32 +1,33 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from ..context import Context
 
-ScalarResult = Union[int, float, bool, str]
-
 
 @dataclass
-class CheckResult:
+class QueryResult:
+    """Result of a query execution."""
+
     name: str
     comment: str
-    value: ScalarResult | None
+    data: Any
     success: bool
     error: str | None = None
 
 
-class BaseCheck(ABC):
-    """Base class for all checks."""
+class BaseQuery(ABC):
+    """Base class for all queries."""
 
     name: str
     comment: str
+    result_key: str  # Key used to store result in context
 
     def __init__(self, context: "Context") -> None:
         self.context = context
 
     @abstractmethod
-    async def run(self) -> ScalarResult:
-        """Execute the check and return a scalar value (int, float, bool, or str)."""
+    async def run(self) -> Any:
+        """Execute query and return data to be stored in context."""
         ...
