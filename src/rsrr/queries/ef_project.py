@@ -19,4 +19,4 @@ class Query(BaseQuery):
                 f"https://projects.eclipse.org/api/projects/{self.context.ef_project_id_normalized}",
             )
         response.raise_for_status()
-        return response.json()
+        return response.json()[0]
