@@ -23,6 +23,7 @@ class BaseQuery(ABC):
     name: str
     comment: str
     result_key: str  # Key used to store result in context
+    depends_on: list[str] = []  # Result keys this query depends on
 
     def __init__(self, context: "Context") -> None:
         self.context = context
