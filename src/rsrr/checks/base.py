@@ -29,6 +29,7 @@ class BaseCheck(ABC):
 
     name: str
     comment: str
+    depends_on: list[str] = []
 
     def __init__(self, ctx: Context) -> None:
         self.ctx = ctx

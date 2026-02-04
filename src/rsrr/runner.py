@@ -42,9 +42,41 @@ async def run_check(
 async def run_checks(
     checks: dict[str, type[BaseCheck]], ctx: Context
 ) -> list[tuple[str, CheckResult]]:
-    """Run all checks in parallel and return a list of (check name, result) tuples."""
-    tasks = [
-        run_check(check_id, check_cls, ctx) for check_id, check_cls in checks.items()
-    ]
-    results = await asyncio.gather(*tasks)
-    return list(zip(checks.keys(), results))
+    """Run all checks respecting dependencies.
+
+    Checks are run in waves. Each wave runs checks whose dependencies have
+    all completed. Returns a list of (check_id, result) tuples.
+    """
+    results: list[tuple[str, CheckResult]] = []
+    completed: set[str] = set()
+    pending = dict(checks)
+
+    while pending:
+        # Find checks whose dependencies are all completed
+        ready = {
+            check_id: check_cls
+            for check_id, check_cls in pending.items()
+            if all(dep in completed for dep in check_cls.depends_on)
+        }
+
+        if not ready:
+            # No checks are ready but some are pending - circular dependency
+            raise ValueError(
+                f"Circular or unsatisfied dependencies detected. "
+                f"Pending checks: {list(pending.keys())}"
+            )
+
+        # Run ready checks in parallel
+        tasks = [
+            run_check(check_id, check_cls, ctx)
+            for check_id, check_cls in ready.items()
+        ]
+        wave_results = await asyncio.gather(*tasks)
+
+        # Record results and mark as completed
+        for check_id, result in zip(ready.keys(), wave_results):
+            results.append((check_id, result))
+            completed.add(check_id)
+            del pending[check_id]
+
+    return results
