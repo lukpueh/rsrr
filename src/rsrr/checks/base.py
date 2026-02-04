@@ -15,15 +15,6 @@ class Context:
         return self.ef_project_id.replace(".", "_")
 
 
-@dataclass
-class CheckResult:
-    name: str
-    comment: str
-    value: Any | None
-    success: bool
-    error: str | None = None
-
-
 class BaseCheck(ABC):
     """Base class for all checks."""
 

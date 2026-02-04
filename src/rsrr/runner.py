@@ -1,9 +1,12 @@
 import asyncio
 import importlib
 import pkgutil
+import logging
 from pathlib import Path
 
-from .checks import BaseCheck, CheckResult, Context
+from .checks import BaseCheck, Context
+
+logger = logging.getLogger(__name__)
 
 
 def discover_checks(package_path: Path) -> dict[str, type[BaseCheck]]:
@@ -25,29 +28,23 @@ def discover_checks(package_path: Path) -> dict[str, type[BaseCheck]]:
     return checks
 
 
-async def run_check(
-    check_id: str, check_cls: type[BaseCheck], ctx: Context
-) -> CheckResult:
+async def run_check(check_id: str, check_cls: type[BaseCheck], ctx: Context):
     """Run a single check and return the result."""
     check = check_cls(ctx)
-    common = {"name": check.name, "comment": check.comment}
     try:
         value = await check.run()
         ctx.data[check_id] = value
-        return CheckResult(**common, value=value, success=True)
+
     except Exception as e:
-        return CheckResult(**common, value=None, success=False, error=str(e))
+        logger.error(f"{check_id}: {e}")
 
 
-async def run_checks(
-    checks: dict[str, type[BaseCheck]], ctx: Context
-) -> list[tuple[str, CheckResult]]:
+async def run_checks(checks: dict[str, type[BaseCheck]], ctx: Context):
     """Run all checks respecting dependencies.
 
     Checks are run in waves. Each wave runs checks whose dependencies have
-    all completed. Returns a list of (check_id, result) tuples.
+    all completed.
     """
-    results: list[tuple[str, CheckResult]] = []
     completed: set[str] = set()
     pending = dict(checks)
 
@@ -68,15 +65,11 @@ async def run_checks(
 
         # Run ready checks in parallel
         tasks = [
-            run_check(check_id, check_cls, ctx)
-            for check_id, check_cls in ready.items()
+            run_check(check_id, check_cls, ctx) for check_id, check_cls in ready.items()
         ]
         wave_results = await asyncio.gather(*tasks)
 
         # Record results and mark as completed
         for check_id, result in zip(ready.keys(), wave_results):
-            results.append((check_id, result))
             completed.add(check_id)
             del pending[check_id]
-
-    return results

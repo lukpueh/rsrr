@@ -11,6 +11,8 @@ uv tool install git+https://github.com/eclipse-csi/rsrr
 
 ## Usage
 
+Check results are printed as JSON to stdout.
+
 ```bash
 # Run all checks
 rsrr run [opts]
