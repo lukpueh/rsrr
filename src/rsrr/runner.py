@@ -33,6 +33,7 @@ async def run_check(
     common = {"name": check.name, "comment": check.comment}
     try:
         value = await check.run()
+        ctx.data[check_id] = value
         return CheckResult(**common, value=value, success=True)
     except Exception as e:
         return CheckResult(**common, value=None, success=False, error=str(e))

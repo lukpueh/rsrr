@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import Union
+from dataclasses import dataclass, field
+from typing import Any, Union
 
 ScalarResult = Union[int, float, bool, str]
 
@@ -8,6 +8,7 @@ ScalarResult = Union[int, float, bool, str]
 @dataclass
 class Context:
     ef_project_id: str | None = None
+    data: dict[str, Any] = field(default_factory=dict)
 
     @property
     def ef_project_id_normalized(self) -> str | None:
