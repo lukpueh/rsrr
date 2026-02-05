@@ -1,9 +1,12 @@
 import asyncio
 import importlib
 import pkgutil
+import logging
 from pathlib import Path
 
-from .checks import BaseCheck, CheckResult, Config
+from .checks import BaseCheck, Context
+
+logger = logging.getLogger(__name__)
 
 
 def discover_checks(package_path: Path) -> dict[str, type[BaseCheck]]:
@@ -25,25 +28,48 @@ def discover_checks(package_path: Path) -> dict[str, type[BaseCheck]]:
     return checks
 
 
-async def run_check(
-    check_id: str, check_cls: type[BaseCheck], config: Config
-) -> CheckResult:
+async def run_check(check_id: str, check_cls: type[BaseCheck], ctx: Context):
     """Run a single check and return the result."""
-    check = check_cls(config)
-    common = {"name": check.name, "comment": check.comment}
+    check = check_cls(ctx)
     try:
         value = await check.run()
-        return CheckResult(**common, value=value, success=True)
+        ctx.data[check_id] = value
+
     except Exception as e:
-        return CheckResult(**common, value=None, success=False, error=str(e))
+        logger.error(f"{check_id}: {e}")
 
 
-async def run_checks(
-    checks: dict[str, type[BaseCheck]], config: Config
-) -> list[tuple[str, CheckResult]]:
-    """Run all checks in parallel and return a list of (check name, result) tuples."""
-    tasks = [
-        run_check(check_id, check_cls, config) for check_id, check_cls in checks.items()
-    ]
-    results = await asyncio.gather(*tasks)
-    return list(zip(checks.keys(), results))
+async def run_checks(checks: dict[str, type[BaseCheck]], ctx: Context):
+    """Run all checks respecting dependencies.
+
+    Checks are run in waves. Each wave runs checks whose dependencies have
+    all completed.
+    """
+    completed: set[str] = set()
+    pending = dict(checks)
+
+    while pending:
+        # Find checks whose dependencies are all completed
+        ready = {
+            check_id: check_cls
+            for check_id, check_cls in pending.items()
+            if all(dep in completed for dep in check_cls.depends_on)
+        }
+
+        if not ready:
+            # No checks are ready but some are pending - circular dependency
+            raise ValueError(
+                f"Circular or unsatisfied dependencies detected. "
+                f"Pending checks: {list(pending.keys())}"
+            )
+
+        # Run ready checks in parallel
+        tasks = [
+            run_check(check_id, check_cls, ctx) for check_id, check_cls in ready.items()
+        ]
+        wave_results = await asyncio.gather(*tasks)
+
+        # Record results and mark as completed
+        for check_id, result in zip(ready.keys(), wave_results):
+            completed.add(check_id)
+            del pending[check_id]

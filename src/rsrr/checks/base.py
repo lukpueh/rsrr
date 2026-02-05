@@ -1,13 +1,12 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import Union
-
-ScalarResult = Union[int, float, bool, str]
+from dataclasses import dataclass, field
+from typing import Any
 
 
 @dataclass
-class Config:
+class Context:
     ef_project_id: str | None = None
+    data: dict[str, Any] = field(default_factory=dict)
 
     @property
     def ef_project_id_normalized(self) -> str | None:
@@ -16,25 +15,15 @@ class Config:
         return self.ef_project_id.replace(".", "_")
 
 
-@dataclass
-class CheckResult:
-    name: str
-    comment: str
-    value: ScalarResult | None
-    success: bool
-    error: str | None = None
-
-
 class BaseCheck(ABC):
     """Base class for all checks."""
 
     name: str
     comment: str
+    depends_on: list[str] = []
 
-    def __init__(self, config: Config) -> None:
-        self.config = config
+    def __init__(self, ctx: Context) -> None:
+        self.ctx = ctx
 
     @abstractmethod
-    async def run(self) -> ScalarResult:
-        """Execute the check and return a scalar value (int, float, bool, or str)."""
-        ...
+    async def run(self) -> Any: ...

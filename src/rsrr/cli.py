@@ -1,12 +1,15 @@
 import asyncio
 import sys
+import logging
+import json
 from pathlib import Path
 
 import click
 
-from .checks import Config
-from .formatters import FormatterConfig, PlainFormatter
+from .checks import Context
 from .runner import discover_checks, run_checks
+
+logger = logging.getLogger(__name__)
 
 
 def get_all_checks() -> dict:
@@ -43,30 +46,20 @@ def list_cmd() -> None:
     default=None,
     help="Eclipse Foundation project ID",
 )
-@click.option(
-    "-v",
-    "--verbose",
-    is_flag=True,
-    help="Enable verbose output",
-)
 def run(
     checks: tuple[str, ...],
     ef_project_id: str | None,
-    verbose: bool,
 ) -> None:
     """Run checks.
 
     If CHECK arguments are provided, only those checks are run.
     Otherwise, all available checks are run.
     """
-    config = Config(ef_project_id=ef_project_id)
-    formatter_config = FormatterConfig(verbose=verbose)
-    sys.exit(asyncio.run(run_async(checks, config, formatter_config)))
+    ctx = Context(ef_project_id=ef_project_id)
+    sys.exit(asyncio.run(run_async(checks, ctx)))
 
 
-async def run_async(
-    checks: tuple[str, ...], config: Config, formatter_config: FormatterConfig
-) -> int:
+async def run_async(checks: tuple[str, ...], ctx: Context) -> int:
     all_checks = get_all_checks()
 
     # Filter checks if specific ones requested
@@ -84,13 +77,14 @@ async def run_async(
         click.echo("No checks to run", err=True)
         return 1
 
-    results = await run_checks(checks_to_run, config)
+    try:
+        await run_checks(checks_to_run, ctx)
+    except ValueError as e:
+        logger.error(e)
 
-    click.echo(PlainFormatter(formatter_config).format(results))
+    click.echo(json.dumps(ctx.data))
 
-    # Exit with error if any check failed
-    failed = any(not result.success for _, result in results)
-    return 1 if failed else 0
+    return 0
 
 
 if __name__ == "__main__":
