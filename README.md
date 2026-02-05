@@ -40,3 +40,16 @@ class Check(BaseCheck):
 ```
 
 Browse existing [`checks/`](src/rsrr/checks) for real-world examples.
+
+## Development
+
+This project uses [`uv`](https://docs.astral.sh/uv/getting-started/installation/)
+for project management, and
+[`just`](https://github.com/casey/just?tab=readme-ov-file#installation)
+to run commands. Look up their docs for installation and usage instructions.
+
+
+```
+# List available commands (recipes)
+just -l
+```
