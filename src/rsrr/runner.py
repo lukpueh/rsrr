@@ -1,5 +1,5 @@
 import asyncio
-import importlib.util
+import importlib
 import pkgutil
 import logging
 from pathlib import Path
@@ -9,11 +9,18 @@ from .base import BaseCheck, Context
 logger = logging.getLogger(__name__)
 
 
-def discover_checks(package_path: Path) -> dict[str, type[BaseCheck]]:
+def discover_checks(
+    package_path: Path, package: str = "rsrr.checks"
+) -> dict[str, type[BaseCheck]]:
     """Discover all check implementations in a directory.
 
     Loads each .py module (except base.py and __init__.py) from package_path
     and collects those that export a Check class inheriting from BaseCheck.
+
+    Args:
+        package_path: Directory to scan for check modules.
+        package: Dotted package name for the modules. Relative imports inside
+            check files are resolved against this package.
 
     Returns a dict mapping check IDs (module names) to check classes.
     """
@@ -23,12 +30,7 @@ def discover_checks(package_path: Path) -> dict[str, type[BaseCheck]]:
         if module_info.name in ("base", "__init__"):
             continue
 
-        module_file = package_path / f"{module_info.name}.py"
-        spec = importlib.util.spec_from_file_location(module_info.name, module_file)
-        if spec is None or spec.loader is None:
-            continue
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
+        module = importlib.import_module(f".{module_info.name}", package=package)
 
         if hasattr(module, "Check") and issubclass(module.Check, BaseCheck):
             checks[module_info.name] = module.Check

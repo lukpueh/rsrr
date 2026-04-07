@@ -1,4 +1,6 @@
+import sys
 import textwrap
+import types
 from pathlib import Path
 from typing import Any
 
@@ -76,7 +78,20 @@ def test_discover_checks(tmp_path: Path):
     (tmp_path / "__init__.py").write_text("")
     (tmp_path / "base.py").write_text("")
 
-    checks = discover_checks(tmp_path)
+    # Register a fake parent package so importlib.import_module can resolve
+    # relative imports against it.
+    pkg_name = "test_discover_checks"
+    pkg = types.ModuleType(pkg_name)
+    pkg.__path__ = [str(tmp_path)]
+    pkg.__package__ = pkg_name
+    sys.modules[pkg_name] = pkg
+    try:
+        checks = discover_checks(tmp_path, package=pkg_name)
+    finally:
+        # Clean up sys.modules
+        to_remove = [k for k in sys.modules if k.startswith(pkg_name)]
+        for k in to_remove:
+            del sys.modules[k]
 
     assert "good_check" in checks
     assert "no_check" not in checks
