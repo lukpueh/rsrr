@@ -47,6 +47,12 @@ def list_cmd() -> None:
     help="Eclipse Foundation project ID",
 )
 @click.option(
+    "--gh-token",
+    envvar="GH_TOKEN",
+    default=None,
+    help="GitHub API token (or set GH_TOKEN env var)",
+)
+@click.option(
     "--ctx-data",
     type=click.Path(exists=True, dir_okay=False),
     default=None,
@@ -55,6 +61,7 @@ def list_cmd() -> None:
 def run(
     checks: tuple[str, ...],
     ef_project_id: str | None,
+    gh_token: str | None,
     ctx_data: str | None,
 ) -> None:
     """Run checks.
@@ -73,7 +80,7 @@ def run(
         if not isinstance(data, dict):
             click.echo(f"--ctx-data file must contain a JSON object", err=True)
             sys.exit(1)
-    ctx = Context(ef_project_id=ef_project_id, data=data)
+    ctx = Context(ef_project_id=ef_project_id, gh_token=gh_token, data=data)
     sys.exit(asyncio.run(run_async(checks, ctx)))
 
 

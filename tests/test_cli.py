@@ -4,7 +4,7 @@ import json
 
 from click.testing import CliRunner
 
-from rsrr.base import BaseCheck
+from rsrr.base import BaseCheck, Context
 from rsrr.cli import main
 
 
@@ -131,6 +131,38 @@ def test_run_with_non_object_ctx_data(tmp_path):
     )
     assert result.exit_code == 1
     assert "--ctx-data file must contain a JSON object" in result.output
+
+
+def test_run_with_gh_token():
+    """--gh-token is passed through to Context."""
+    with _patch_checks(), patch("rsrr.cli.Context") as mock_ctx_cls:
+        mock_ctx_cls.return_value = Context(gh_token="tok123")
+        runner = CliRunner()
+        result = runner.invoke(
+            main,
+            ["run", "--ef-project-id", "test.project", "--gh-token", "tok123"],
+        )
+
+    assert result.exit_code == 0
+    mock_ctx_cls.assert_called_once_with(
+        ef_project_id="test.project", gh_token="tok123", data={}
+    )
+
+
+def test_run_gh_token_from_env():
+    """GH_TOKEN env var is used when --gh-token is not provided."""
+    with _patch_checks(), patch("rsrr.cli.Context") as mock_ctx_cls:
+        mock_ctx_cls.return_value = Context(gh_token="env-token")
+        runner = CliRunner(env={"GH_TOKEN": "env-token"})
+        result = runner.invoke(
+            main,
+            ["run", "--ef-project-id", "test.project"],
+        )
+
+    assert result.exit_code == 0
+    mock_ctx_cls.assert_called_once_with(
+        ef_project_id="test.project", gh_token="env-token", data={}
+    )
 
 
 def test_run_no_checks_available():
