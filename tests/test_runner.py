@@ -90,7 +90,7 @@ def test_discover_checks(tmp_path: Path):
 @pytest.mark.asyncio
 async def test_run_check_stores_result():
     ctx = Context()
-    await run_check("passing", PassingCheck, ctx)
+    assert await run_check("passing", PassingCheck, ctx) is True
     assert ctx.data["passing"] == {"ok": True}
 
 
@@ -98,7 +98,7 @@ async def test_run_check_stores_result():
 async def test_run_check_exception_handled():
     """A failing check should not propagate the exception."""
     ctx = Context()
-    await run_check("failing", FailingCheck, ctx)
+    assert await run_check("failing", FailingCheck, ctx) is False
     assert "failing" not in ctx.data
 
 
@@ -146,6 +146,65 @@ async def test_run_checks_parallel_wave():
     assert set(order) == {"a", "b"}
     assert ctx.data["a"] == "a"
     assert ctx.data["b"] == "b"
+
+
+@pytest.mark.asyncio
+async def test_run_checks_skips_dependent_on_failure():
+    """If a check fails, checks that depend on it are skipped."""
+
+    class DependsOnFailing(BaseCheck):
+        name = "DependsOnFailing"
+        comment = ""
+        depends_on = ["failing"]
+
+        async def run(self) -> Any:
+            return "should not run"
+
+    ctx = Context()
+    await run_checks({"failing": FailingCheck, "depends_on_failing": DependsOnFailing}, ctx)
+
+    assert "failing" not in ctx.data
+    assert "depends_on_failing" not in ctx.data
+
+
+@pytest.mark.asyncio
+async def test_run_checks_skips_transitive_dependents():
+    """Transitive dependents of a failed check are also skipped."""
+
+    class Middle(BaseCheck):
+        name = "Middle"
+        comment = ""
+        depends_on = ["failing"]
+
+        async def run(self) -> Any:
+            return "middle"
+
+    class Leaf(BaseCheck):
+        name = "Leaf"
+        comment = ""
+        depends_on = ["middle"]
+
+        async def run(self) -> Any:
+            return "leaf"
+
+    ctx = Context()
+    await run_checks(
+        {"failing": FailingCheck, "middle": Middle, "leaf": Leaf}, ctx
+    )
+
+    assert "failing" not in ctx.data
+    assert "middle" not in ctx.data
+    assert "leaf" not in ctx.data
+
+
+@pytest.mark.asyncio
+async def test_run_checks_independent_check_unaffected_by_failure():
+    """A check with no dependency on the failed check still runs."""
+    ctx = Context()
+    await run_checks({"failing": FailingCheck, "passing": PassingCheck}, ctx)
+
+    assert "failing" not in ctx.data
+    assert ctx.data["passing"] == {"ok": True}
 
 
 @pytest.mark.asyncio

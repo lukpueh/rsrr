@@ -36,27 +36,47 @@ def discover_checks(package_path: Path) -> dict[str, type[BaseCheck]]:
     return checks
 
 
-async def run_check(check_id: str, check_cls: type[BaseCheck], ctx: Context):
-    """Run a single check and return the result."""
+async def run_check(check_id: str, check_cls: type[BaseCheck], ctx: Context) -> bool:
+    """Run a single check and return whether it succeeded."""
     check = check_cls(ctx)
     try:
         value = await check.run()
         ctx.data[check_id] = value
-
+        return True
     except Exception as e:
         logger.error(f"{check_id}: {e}")
+        return False
 
 
 async def run_checks(checks: dict[str, type[BaseCheck]], ctx: Context):
     """Run all checks respecting dependencies.
 
     Checks are run in waves. Each wave runs checks whose dependencies have
-    all completed.
+    all completed. If a check fails, all checks that depend on it (directly
+    or transitively) are skipped.
     """
     completed: set[str] = set()
+    failed: set[str] = set()
     pending = dict(checks)
 
     while pending:
+        # Skip checks that depend on a failed check (loop for transitive deps)
+        while True:
+            skipped = {
+                check_id
+                for check_id, check_cls in pending.items()
+                if any(dep in failed for dep in check_cls.depends_on)
+            }
+            if not skipped:
+                break
+            for check_id in skipped:
+                logger.warning(f"{check_id}: skipped (dependency failed)")
+                failed.add(check_id)
+                del pending[check_id]
+
+        if not pending:
+            break
+
         # Find checks whose dependencies are all completed
         ready = {
             check_id: check_cls
@@ -75,9 +95,12 @@ async def run_checks(checks: dict[str, type[BaseCheck]], ctx: Context):
         tasks = [
             run_check(check_id, check_cls, ctx) for check_id, check_cls in ready.items()
         ]
-        wave_results = await asyncio.gather(*tasks)
+        results = await asyncio.gather(*tasks)
 
-        # Record results and mark as completed
-        for check_id, result in zip(ready.keys(), wave_results):
-            completed.add(check_id)
+        # Record results and mark as completed or failed
+        for check_id, succeeded in zip(ready.keys(), results):
+            if succeeded:
+                completed.add(check_id)
+            else:
+                failed.add(check_id)
             del pending[check_id]
