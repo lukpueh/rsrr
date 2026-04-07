@@ -92,18 +92,15 @@ def test_run_unknown_check():
     assert "nonexistent" in result.output
 
 
-def test_run_with_ctx_data():
+def test_run_with_ctx_data(tmp_path):
+    ctx_file = tmp_path / "ctx.json"
+    ctx_file.write_text('{"check_a": "cached"}')
+
     with _patch_checks():
         runner = CliRunner()
         result = runner.invoke(
             main,
-            [
-                "run",
-                "--ef-project-id",
-                "test.project",
-                "--ctx-data",
-                '{"check_a": "cached"}',
-            ],
+            ["run", "--ef-project-id", "test.project", "--ctx-data", str(ctx_file)],
         )
 
     assert result.exit_code == 0
@@ -112,22 +109,28 @@ def test_run_with_ctx_data():
     assert data["check_b"] == "result_b"
 
 
-def test_run_with_invalid_ctx_data():
+def test_run_with_invalid_ctx_data(tmp_path):
+    ctx_file = tmp_path / "bad.json"
+    ctx_file.write_text("not-json")
+
     runner = CliRunner()
     result = runner.invoke(
-        main, ["run", "--ef-project-id", "test.project", "--ctx-data", "not-json"]
+        main, ["run", "--ef-project-id", "test.project", "--ctx-data", str(ctx_file)]
     )
     assert result.exit_code == 1
-    assert "Invalid --ctx-data JSON" in result.output
+    assert "Invalid JSON" in result.output
 
 
-def test_run_with_non_object_ctx_data():
+def test_run_with_non_object_ctx_data(tmp_path):
+    ctx_file = tmp_path / "array.json"
+    ctx_file.write_text("[1, 2]")
+
     runner = CliRunner()
     result = runner.invoke(
-        main, ["run", "--ef-project-id", "test.project", "--ctx-data", "[1, 2]"]
+        main, ["run", "--ef-project-id", "test.project", "--ctx-data", str(ctx_file)]
     )
     assert result.exit_code == 1
-    assert "--ctx-data must be a JSON object" in result.output
+    assert "--ctx-data file must contain a JSON object" in result.output
 
 
 def test_run_no_checks_available():

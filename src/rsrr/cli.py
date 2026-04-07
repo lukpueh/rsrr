@@ -48,8 +48,9 @@ def list_cmd() -> None:
 )
 @click.option(
     "--ctx-data",
+    type=click.Path(exists=True, dir_okay=False),
     default=None,
-    help="JSON object to pre-populate context data (checks with existing entries are skipped)",
+    help="JSON file to pre-populate context data (checks with existing entries are skipped)",
 )
 def run(
     checks: tuple[str, ...],
@@ -64,12 +65,13 @@ def run(
     data = {}
     if ctx_data is not None:
         try:
-            data = json.loads(ctx_data)
+            with open(ctx_data) as f:
+                data = json.load(f)
         except json.JSONDecodeError as e:
-            click.echo(f"Invalid --ctx-data JSON: {e}", err=True)
+            click.echo(f"Invalid JSON in {ctx_data}: {e}", err=True)
             sys.exit(1)
         if not isinstance(data, dict):
-            click.echo("--ctx-data must be a JSON object", err=True)
+            click.echo(f"--ctx-data file must contain a JSON object", err=True)
             sys.exit(1)
     ctx = Context(ef_project_id=ef_project_id, data=data)
     sys.exit(asyncio.run(run_async(checks, ctx)))
