@@ -55,9 +55,16 @@ async def run_checks(checks: dict[str, type[BaseCheck]], ctx: Context):
     all completed. If a check fails, all checks that depend on it (directly
     or transitively) are skipped.
     """
+    # Treat checks with pre-populated data as already completed
     completed: set[str] = set()
     failed: set[str] = set()
-    pending = dict(checks)
+    pending = {}
+    for check_id, check_cls in checks.items():
+        if check_id in ctx.data:
+            logger.info(f"{check_id}: skipped (already in context data)")
+            completed.add(check_id)
+        else:
+            pending[check_id] = check_cls
 
     while pending:
         # Skip checks that depend on a failed check (loop for transitive deps)

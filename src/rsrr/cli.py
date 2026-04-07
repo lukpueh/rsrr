@@ -46,16 +46,32 @@ def list_cmd() -> None:
     default=None,
     help="Eclipse Foundation project ID",
 )
+@click.option(
+    "--ctx-data",
+    default=None,
+    help="JSON object to pre-populate context data (checks with existing entries are skipped)",
+)
 def run(
     checks: tuple[str, ...],
     ef_project_id: str | None,
+    ctx_data: str | None,
 ) -> None:
     """Run checks.
 
     If CHECK arguments are provided, only those checks are run.
     Otherwise, all available checks are run.
     """
-    ctx = Context(ef_project_id=ef_project_id)
+    data = {}
+    if ctx_data is not None:
+        try:
+            data = json.loads(ctx_data)
+        except json.JSONDecodeError as e:
+            click.echo(f"Invalid --ctx-data JSON: {e}", err=True)
+            sys.exit(1)
+        if not isinstance(data, dict):
+            click.echo("--ctx-data must be a JSON object", err=True)
+            sys.exit(1)
+    ctx = Context(ef_project_id=ef_project_id, data=data)
     sys.exit(asyncio.run(run_async(checks, ctx)))
 
 

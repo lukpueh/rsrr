@@ -219,6 +219,24 @@ async def test_run_checks_circular_dependency():
 
 
 @pytest.mark.asyncio
+async def test_run_checks_skips_preexisting_data():
+    """Checks with pre-populated ctx.data are skipped."""
+    ctx = Context(data={"passing": "cached"})
+    await run_checks({"passing": PassingCheck}, ctx)
+    assert ctx.data["passing"] == "cached"
+
+
+@pytest.mark.asyncio
+async def test_run_checks_preexisting_data_satisfies_dependency():
+    """Pre-populated data counts as completed for dependency resolution."""
+    ctx = Context(data={"passing": {"ok": True}})
+    await run_checks({"passing": PassingCheck, "dependent": DependentCheck}, ctx)
+
+    assert ctx.data["passing"] == {"ok": True}
+    assert ctx.data["dependent"] == {"upstream": {"ok": True}}
+
+
+@pytest.mark.asyncio
 async def test_run_checks_empty():
     """Running with no checks completes immediately."""
     ctx = Context()

@@ -92,6 +92,44 @@ def test_run_unknown_check():
     assert "nonexistent" in result.output
 
 
+def test_run_with_ctx_data():
+    with _patch_checks():
+        runner = CliRunner()
+        result = runner.invoke(
+            main,
+            [
+                "run",
+                "--ef-project-id",
+                "test.project",
+                "--ctx-data",
+                '{"check_a": "cached"}',
+            ],
+        )
+
+    assert result.exit_code == 0
+    data = json.loads(result.output)
+    assert data["check_a"] == "cached"
+    assert data["check_b"] == "result_b"
+
+
+def test_run_with_invalid_ctx_data():
+    runner = CliRunner()
+    result = runner.invoke(
+        main, ["run", "--ef-project-id", "test.project", "--ctx-data", "not-json"]
+    )
+    assert result.exit_code == 1
+    assert "Invalid --ctx-data JSON" in result.output
+
+
+def test_run_with_non_object_ctx_data():
+    runner = CliRunner()
+    result = runner.invoke(
+        main, ["run", "--ef-project-id", "test.project", "--ctx-data", "[1, 2]"]
+    )
+    assert result.exit_code == 1
+    assert "--ctx-data must be a JSON object" in result.output
+
+
 def test_run_no_checks_available():
     with _patch_checks(checks={}):
         runner = CliRunner()
