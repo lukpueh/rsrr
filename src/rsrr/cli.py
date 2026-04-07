@@ -19,10 +19,17 @@ def get_all_checks() -> dict:
 
 
 @click.group(invoke_without_command=True)
+@click.option("-v", "--verbose", is_flag=True, help="Enable info logging")
 @click.pass_context
-def main(ctx: click.Context) -> None:
+def main(ctx: click.Context, verbose: bool) -> None:
     """Rapid Security Review Runner -- Runs an extensible set of checks for
     Eclipse Foundation Rapid Security Reviews."""
+    logging.basicConfig(
+        level=logging.INFO if verbose else logging.WARNING,
+        format="%(levelname)s: %(message)s",
+        stream=sys.stderr,
+        force=True,
+    )
 
     if ctx.invoked_subcommand is None:
         click.echo(ctx.get_help())

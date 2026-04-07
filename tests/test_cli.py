@@ -46,6 +46,21 @@ def test_main_no_subcommand_shows_help():
     assert "Rapid Security Review Runner" in result.output
 
 
+def test_verbose_enables_info_logging():
+    """The -v flag sets logging level to INFO."""
+    import logging as _logging
+
+    with _patch_checks():
+        runner = CliRunner()
+        result = runner.invoke(
+            main,
+            ["-v", "run", "--ef-project-id", "test.project"],
+        )
+
+    assert result.exit_code == 0
+    assert _logging.getLogger().level == _logging.INFO
+
+
 def test_list_shows_checks():
     with _patch_checks():
         runner = CliRunner()
