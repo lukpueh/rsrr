@@ -1,7 +1,7 @@
 import httpx
 from typing import Any
 
-from .base import BaseCheck
+from ..base import BaseCheck
 
 
 class Check(BaseCheck):
