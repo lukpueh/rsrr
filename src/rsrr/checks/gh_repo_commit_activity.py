@@ -27,7 +27,7 @@ class Check(BaseCheck):
 
             try:
                 total = 0
-                committers: dict[str, str] = {}
+                committers: dict[str, dict] = {}
                 page = 1
                 while True:
                     response = await self.ctx.github_get(
@@ -42,14 +42,15 @@ class Check(BaseCheck):
                         info = commit.get("commit", {}).get("author", {})
                         name = info.get("name", "")
                         email = info.get("email", "")
+                        login = (commit.get("author") or {}).get("login", "")
                         if email and email not in committers:
-                            committers[email] = name
+                            committers[email] = {"name": name, "login": login}
                     page += 1
                 results[url] = {
                     "commit_count": total,
                     "committers": [
-                        {"name": name, "email": email}
-                        for email, name in committers.items()
+                        {"name": c["name"], "email": email, "login": c["login"]}
+                        for email, c in committers.items()
                     ],
                 }
             except httpx.HTTPStatusError as e:
