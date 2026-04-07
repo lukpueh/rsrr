@@ -54,9 +54,9 @@ def list_cmd() -> None:
 )
 @click.option(
     "--ctx-data",
-    type=click.Path(exists=True, dir_okay=False),
+    type=click.Path(dir_okay=False),
     default=None,
-    help="JSON file to pre-populate context data (checks with existing entries are skipped)",
+    help="JSON file to read/write context data (results are merged back into this file)",
 )
 def run(
     checks: tuple[str, ...],
@@ -68,9 +68,13 @@ def run(
 
     If CHECK arguments are provided, only those checks are run.
     Otherwise, all available checks are run.
+
+    When --ctx-data is given, existing results are loaded from the file and
+    checks with entries already present are skipped. After running, all
+    results (old and new) are written back to the same file.
     """
     data = {}
-    if ctx_data is not None:
+    if ctx_data is not None and Path(ctx_data).exists():
         try:
             with open(ctx_data) as f:
                 data = json.load(f)
@@ -78,13 +82,15 @@ def run(
             click.echo(f"Invalid JSON in {ctx_data}: {e}", err=True)
             sys.exit(1)
         if not isinstance(data, dict):
-            click.echo("--ctx-data file must contain a JSON object", err=True)
+            click.echo(f"--ctx-data file must contain a JSON object", err=True)
             sys.exit(1)
     ctx = Context(ef_project_id=ef_project_id, gh_token=gh_token, data=data)
-    sys.exit(asyncio.run(run_async(checks, ctx)))
+    sys.exit(asyncio.run(run_async(checks, ctx, ctx_data)))
 
 
-async def run_async(checks: tuple[str, ...], ctx: Context) -> int:
+async def run_async(
+    checks: tuple[str, ...], ctx: Context, ctx_data_path: str | None
+) -> int:
     all_checks = get_all_checks()
 
     # Filter checks if specific ones requested
@@ -107,7 +113,12 @@ async def run_async(checks: tuple[str, ...], ctx: Context) -> int:
     except ValueError as e:
         logger.error(e)
 
-    click.echo(json.dumps(ctx.data))
+    if ctx_data_path is not None:
+        with open(ctx_data_path, "w") as f:
+            json.dump(ctx.data, f, indent=2)
+            f.write("\n")
+    else:
+        click.echo(json.dumps(ctx.data, indent=2))
 
     return 0
 

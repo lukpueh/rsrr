@@ -56,13 +56,31 @@ def test_list_shows_checks():
     assert "check_b" in result.output
 
 
-def test_run_all_checks():
+def test_run_all_checks_to_stdout():
+    """Without --ctx-data, results are printed to stdout."""
     with _patch_checks():
         runner = CliRunner()
         result = runner.invoke(main, ["run", "--ef-project-id", "test.project"])
 
     assert result.exit_code == 0
     data = json.loads(result.output)
+    assert data["check_a"] == "result_a"
+    assert data["check_b"] == "result_b"
+
+
+def test_run_all_checks_to_file(tmp_path):
+    """With --ctx-data, results are written to the file."""
+    ctx_file = tmp_path / "results.json"
+
+    with _patch_checks():
+        runner = CliRunner()
+        result = runner.invoke(
+            main,
+            ["run", "--ef-project-id", "test.project", "--ctx-data", str(ctx_file)],
+        )
+
+    assert result.exit_code == 0
+    data = json.loads(ctx_file.read_text())
     assert data["check_a"] == "result_a"
     assert data["check_b"] == "result_b"
 
@@ -92,7 +110,8 @@ def test_run_unknown_check():
     assert "nonexistent" in result.output
 
 
-def test_run_with_ctx_data(tmp_path):
+def test_run_with_ctx_data_incremental(tmp_path):
+    """--ctx-data reads existing data and writes merged results back."""
     ctx_file = tmp_path / "ctx.json"
     ctx_file.write_text('{"check_a": "cached"}')
 
@@ -104,7 +123,7 @@ def test_run_with_ctx_data(tmp_path):
         )
 
     assert result.exit_code == 0
-    data = json.loads(result.output)
+    data = json.loads(ctx_file.read_text())
     assert data["check_a"] == "cached"
     assert data["check_b"] == "result_b"
 
