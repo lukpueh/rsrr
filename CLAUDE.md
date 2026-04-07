@@ -79,7 +79,24 @@ Tests cover `cli.py` and `runner.py` — not individual check implementations.
 - **Runner tests** (`tests/test_runner.py`): use simple `BaseCheck` subclasses defined inline. `test_discover_checks` writes temp modules to `tmp_path` and runs real discovery.
 - Async tests use `@pytest.mark.asyncio` (requires `pytest-asyncio`; asyncio mode configured as `strict` in `pyproject.toml`).
 
+## Sandbox / CI Environment
+
+This project is developed on macOS but Claude Code runs in a Docker (Linux) sandbox.
+The `.venv/` in the project root belongs to the host — **do not touch it from the sandbox**.
+
+In the sandbox, use a separate venv via `UV_PROJECT_ENVIRONMENT`:
+
+```bash
+uv venv /tmp/rsrr-venv --python 3.13
+export UV_PROJECT_ENVIRONMENT=/tmp/rsrr-venv
+uv sync
+uv run pytest tests/ -v   # uses /tmp/rsrr-venv
+uv run rsrr list           # uses /tmp/rsrr-venv
+```
+
+Set `UV_PROJECT_ENVIRONMENT` before any `uv run`/`uv sync` command.
+
 ## Directory Notes
 
 - `research/` — shell scripts for exploring APIs (not part of the package)
-- `.venv/` — managed by uv, do not edit manually
+- `.venv/` — host-managed by uv, do not modify from sandbox/CI
