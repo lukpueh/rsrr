@@ -176,7 +176,9 @@ async def test_run_checks_skips_dependent_on_failure():
             return "should not run"
 
     ctx = Context()
-    await run_checks({"failing": FailingCheck, "depends_on_failing": DependsOnFailing}, ctx)
+    await run_checks(
+        {"failing": FailingCheck, "depends_on_failing": DependsOnFailing}, ctx
+    )
 
     assert "failing" not in ctx.data
     assert "depends_on_failing" not in ctx.data
@@ -203,9 +205,7 @@ async def test_run_checks_skips_transitive_dependents():
             return "leaf"
 
     ctx = Context()
-    await run_checks(
-        {"failing": FailingCheck, "middle": Middle, "leaf": Leaf}, ctx
-    )
+    await run_checks({"failing": FailingCheck, "middle": Middle, "leaf": Leaf}, ctx)
 
     assert "failing" not in ctx.data
     assert "middle" not in ctx.data
