@@ -179,7 +179,7 @@ def test_run_with_gh_token():
 
     assert result.exit_code == 0
     mock_ctx_cls.assert_called_once_with(
-        ef_project_id="test.project", gh_token="tok123", data={}
+        ef_project_id="test.project", gh_repo=None, gh_token="tok123", data={}
     )
 
 
@@ -195,7 +195,7 @@ def test_run_gh_token_from_env():
 
     assert result.exit_code == 0
     mock_ctx_cls.assert_called_once_with(
-        ef_project_id="test.project", gh_token="env-token", data={}
+        ef_project_id="test.project", gh_repo=None, gh_token="env-token", data={}
     )
 
 
