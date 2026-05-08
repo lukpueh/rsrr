@@ -11,7 +11,7 @@ class Context:
     gh_repo: str | None = None
     gh_token: str | None = None
     gl_token: str | None = None
-    gl_vuln_keywords: tuple[str, ...] = ()
+    gl_vuln_kw: tuple[str, ...] = ()
     data: dict[str, Any] = field(default_factory=dict)
 
     @property

@@ -71,7 +71,7 @@ def list_cmd() -> None:
     help="GitLab API token (or set GL_TOKEN env var)",
 )
 @click.option(
-    "--gl-vuln-kws",
+    "--gl-vuln-kw",
     multiple=True,
     help="Keywords to search in GitLab vulnerability reports (repeatable)",
 )
@@ -87,7 +87,7 @@ def run(
     gh_repo: str | None,
     gh_token: str | None,
     gl_token: str | None,
-    gl_vuln_kws: tuple[str, ...],
+    gl_vuln_kw: tuple[str, ...],
     ctx_data: str | None,
 ) -> None:
     """Run checks.
@@ -110,7 +110,7 @@ def run(
         if not isinstance(data, dict):
             click.echo(f"--ctx-data file must contain a JSON object", err=True)
             sys.exit(1)
-    ctx = Context(ef_project_id=ef_project_id, gh_repo=gh_repo, gh_token=gh_token, gl_token=gl_token, gl_vuln_keywords=gl_vuln_kws, data=data)
+    ctx = Context(ef_project_id=ef_project_id, gh_repo=gh_repo, gh_token=gh_token, gl_token=gl_token, gl_vuln_kw=gl_vuln_kw, data=data)
     sys.exit(asyncio.run(run_async(checks, ctx, ctx_data)))
 
 
