@@ -65,6 +65,12 @@ def list_cmd() -> None:
     help="GitHub API token (or set GH_TOKEN env var)",
 )
 @click.option(
+    "--gl-token",
+    envvar="GL_TOKEN",
+    default=None,
+    help="GitLab API token (or set GL_TOKEN env var)",
+)
+@click.option(
     "--ctx-data",
     type=click.Path(dir_okay=False),
     default=None,
@@ -75,6 +81,7 @@ def run(
     ef_project_id: str | None,
     gh_repo: str | None,
     gh_token: str | None,
+    gl_token: str | None,
     ctx_data: str | None,
 ) -> None:
     """Run checks.
@@ -97,7 +104,7 @@ def run(
         if not isinstance(data, dict):
             click.echo(f"--ctx-data file must contain a JSON object", err=True)
             sys.exit(1)
-    ctx = Context(ef_project_id=ef_project_id, gh_repo=gh_repo, gh_token=gh_token, data=data)
+    ctx = Context(ef_project_id=ef_project_id, gh_repo=gh_repo, gh_token=gh_token, gl_token=gl_token, data=data)
     sys.exit(asyncio.run(run_async(checks, ctx, ctx_data)))
 
 

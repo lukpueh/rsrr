@@ -10,6 +10,7 @@ class Context:
     ef_project_id: str | None = None
     gh_repo: str | None = None
     gh_token: str | None = None
+    gl_token: str | None = None
     data: dict[str, Any] = field(default_factory=dict)
 
     @property
