@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 from typing import Any
 
 from ..base import BaseCheck
@@ -7,21 +8,21 @@ from ..base import BaseCheck
 
 class Check(BaseCheck):
     name = "Zizmor"
-    comment = "Runs zizmor GitHub Actions security audit on the cloned repo"
-    depends_on = ["gh_repo_clone"]
+    comment = "Runs zizmor GitHub Actions security audit on a GitHub repo"
 
     async def run(self) -> list[dict[str, Any]]:
-        repo_path = self.ctx.data["gh_repo_clone"]
+        if not self.ctx.gh_repo:
+            raise ValueError("--gh-repo is required for this check")
 
-        env: dict[str, str] = {}
+        env = os.environ.copy()
         if self.ctx.gh_token:
             env["GH_TOKEN"] = self.ctx.gh_token
 
         proc = await asyncio.create_subprocess_exec(
-            "zizmor", "--format", "json", repo_path,
+            "zizmor", "--format", "json", self.ctx.gh_repo,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
-            env=env if env else None,
+            env=env,
         )
         stdout, stderr = await proc.communicate()
 
