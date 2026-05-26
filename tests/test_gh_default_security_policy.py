@@ -47,10 +47,12 @@ async def test_org_missing_security_policy():
 
 @pytest.mark.asyncio
 async def test_multiple_orgs():
-    ctx = _make_context([
-        "https://github.com/org-a/repo1",
-        "https://github.com/org-b/repo2",
-    ])
+    ctx = _make_context(
+        [
+            "https://github.com/org-a/repo1",
+            "https://github.com/org-b/repo2",
+        ]
+    )
     ctx.github_get = _mock_github_get(orgs_with_policy=["org-a"])
     result = await Check(ctx).run()
     assert result == {"org-a": True, "org-b": False}

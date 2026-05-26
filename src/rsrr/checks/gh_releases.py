@@ -14,10 +14,7 @@ class Check(BaseCheck):
 
         owner, repo = self.ctx.gh_repo.split("/", 1)
         releases: list[dict[str, Any]] = []
-        url = (
-            f"https://api.github.com/repos/{owner}/{repo}"
-            f"/releases?per_page=100"
-        )
+        url = f"https://api.github.com/repos/{owner}/{repo}/releases?per_page=100"
 
         while url:
             response = await self.ctx.github_get(url)

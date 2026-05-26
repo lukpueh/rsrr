@@ -7,10 +7,12 @@ from rsrr.checks.ef_inactive_committers import Check
 
 
 def _make_context(ef_committers, activity):
-    return Context(data={
-        "ef_committers": ef_committers,
-        "gh_repo_commit_activity": activity,
-    })
+    return Context(
+        data={
+            "ef_committers": ef_committers,
+            "gh_repo_commit_activity": activity,
+        }
+    )
 
 
 def _ef_committer(first_name, last_name, github_handle=""):
@@ -27,8 +29,8 @@ def _activity(committer_logins):
         "https://github.com/org/repo": {
             "commit_count": len(committer_logins),
             "committers": [
-                {"name": "", "email": f"{l}@example.com", "login": l}
-                for l in committer_logins
+                {"name": "", "email": f"{login}@example.com", "login": login}
+                for login in committer_logins
             ],
         }
     }

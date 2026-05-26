@@ -16,7 +16,12 @@ class Check(BaseCheck):
         url = f"https://github.com/{self.ctx.gh_repo}.git"
 
         proc = await asyncio.create_subprocess_exec(
-            "git", "clone", "--depth", "1", url, tmp_dir,
+            "git",
+            "clone",
+            "--depth",
+            "1",
+            url,
+            tmp_dir,
             stdout=asyncio.subprocess.DEVNULL,
             stderr=asyncio.subprocess.PIPE,
         )

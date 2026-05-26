@@ -34,20 +34,24 @@ class Check(BaseCheck):
                 logger.warning(
                     f"EF committer {first_name} {last_name} has no GitHub handle"
                 )
-                inactive.append({
-                    "first_name": first_name,
-                    "last_name": last_name,
-                    "github_handle": "",
-                    "reason": "no_github_handle",
-                })
+                inactive.append(
+                    {
+                        "first_name": first_name,
+                        "last_name": last_name,
+                        "github_handle": "",
+                        "reason": "no_github_handle",
+                    }
+                )
                 continue
 
             if handle.lower() not in active_logins:
-                inactive.append({
-                    "first_name": first_name,
-                    "last_name": last_name,
-                    "github_handle": handle,
-                    "reason": "no_recent_commits",
-                })
+                inactive.append(
+                    {
+                        "first_name": first_name,
+                        "last_name": last_name,
+                        "github_handle": handle,
+                        "reason": "no_recent_commits",
+                    }
+                )
 
         return inactive

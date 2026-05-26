@@ -1,5 +1,4 @@
 import asyncio
-import json
 import os
 from typing import Any
 
@@ -18,7 +17,8 @@ class Check(BaseCheck):
         env["GH_TOKEN"] = self.ctx.gh_token
 
         proc = await asyncio.create_subprocess_exec(
-            "zizmor", self.ctx.gh_repo,
+            "zizmor",
+            self.ctx.gh_repo,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
             env=env,

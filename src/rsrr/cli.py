@@ -108,9 +108,16 @@ def run(
             click.echo(f"Invalid JSON in {ctx_data}: {e}", err=True)
             sys.exit(1)
         if not isinstance(data, dict):
-            click.echo(f"--ctx-data file must contain a JSON object", err=True)
+            click.echo("--ctx-data file must contain a JSON object", err=True)
             sys.exit(1)
-    ctx = Context(ef_project_id=ef_project_id, gh_repo=gh_repo, gh_token=gh_token, gl_token=gl_token, gl_vuln_kw=gl_vuln_kw, data=data)
+    ctx = Context(
+        ef_project_id=ef_project_id,
+        gh_repo=gh_repo,
+        gh_token=gh_token,
+        gl_token=gl_token,
+        gl_vuln_kw=gl_vuln_kw,
+        data=data,
+    )
     sys.exit(asyncio.run(run_async(checks, ctx, ctx_data)))
 
 

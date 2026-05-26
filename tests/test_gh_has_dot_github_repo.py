@@ -1,4 +1,4 @@
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import MagicMock
 
 import httpx
 import pytest
@@ -49,11 +49,13 @@ async def test_org_missing_dot_github():
 
 @pytest.mark.asyncio
 async def test_multiple_orgs():
-    ctx = _make_context([
-        "https://github.com/org-a/repo1",
-        "https://github.com/org-b/repo2",
-        "https://github.com/org-a/repo3",
-    ])
+    ctx = _make_context(
+        [
+            "https://github.com/org-a/repo1",
+            "https://github.com/org-b/repo2",
+            "https://github.com/org-a/repo3",
+        ]
+    )
     ctx.github_get = _mock_github_get(found_orgs=["org-a"])
     check = Check(ctx)
     result = await check.run()

@@ -35,22 +35,29 @@ def _mock_client(url_responses):
 
 @pytest.mark.asyncio
 async def test_fetches_committer_profiles():
-    ctx = _make_context([
-        {"username": "alice", "url": "https://api.eclipse.org/account/profile/alice"},
-        {"username": "bob", "url": "https://api.eclipse.org/account/profile/bob"},
-    ])
-    mock = _mock_client({
-        "https://api.eclipse.org/account/profile/alice": {
-            "name": "alice",
-            "full_name": "Alice A",
-            "github_handle": "alice-gh",
-        },
-        "https://api.eclipse.org/account/profile/bob": {
-            "name": "bob",
-            "full_name": "Bob B",
-            "github_handle": "bob-gh",
-        },
-    })
+    ctx = _make_context(
+        [
+            {
+                "username": "alice",
+                "url": "https://api.eclipse.org/account/profile/alice",
+            },
+            {"username": "bob", "url": "https://api.eclipse.org/account/profile/bob"},
+        ]
+    )
+    mock = _mock_client(
+        {
+            "https://api.eclipse.org/account/profile/alice": {
+                "name": "alice",
+                "full_name": "Alice A",
+                "github_handle": "alice-gh",
+            },
+            "https://api.eclipse.org/account/profile/bob": {
+                "name": "bob",
+                "full_name": "Bob B",
+                "github_handle": "bob-gh",
+            },
+        }
+    )
 
     with patch("rsrr.checks.ef_committers.httpx.AsyncClient", return_value=mock):
         result = await Check(ctx).run()
@@ -62,13 +69,17 @@ async def test_fetches_committer_profiles():
 
 @pytest.mark.asyncio
 async def test_skips_committer_without_url():
-    ctx = _make_context([
-        {"username": "alice", "url": ""},
-        {"username": "bob", "url": "https://api.eclipse.org/account/profile/bob"},
-    ])
-    mock = _mock_client({
-        "https://api.eclipse.org/account/profile/bob": {"name": "bob"},
-    })
+    ctx = _make_context(
+        [
+            {"username": "alice", "url": ""},
+            {"username": "bob", "url": "https://api.eclipse.org/account/profile/bob"},
+        ]
+    )
+    mock = _mock_client(
+        {
+            "https://api.eclipse.org/account/profile/bob": {"name": "bob"},
+        }
+    )
 
     with patch("rsrr.checks.ef_committers.httpx.AsyncClient", return_value=mock):
         result = await Check(ctx).run()
@@ -79,13 +90,20 @@ async def test_skips_committer_without_url():
 
 @pytest.mark.asyncio
 async def test_api_error_skips_committer():
-    ctx = _make_context([
-        {"username": "alice", "url": "https://api.eclipse.org/account/profile/alice"},
-        {"username": "bob", "url": "https://api.eclipse.org/account/profile/bob"},
-    ])
-    mock = _mock_client({
-        "https://api.eclipse.org/account/profile/bob": {"name": "bob"},
-    })
+    ctx = _make_context(
+        [
+            {
+                "username": "alice",
+                "url": "https://api.eclipse.org/account/profile/alice",
+            },
+            {"username": "bob", "url": "https://api.eclipse.org/account/profile/bob"},
+        ]
+    )
+    mock = _mock_client(
+        {
+            "https://api.eclipse.org/account/profile/bob": {"name": "bob"},
+        }
+    )
 
     with patch("rsrr.checks.ef_committers.httpx.AsyncClient", return_value=mock):
         result = await Check(ctx).run()

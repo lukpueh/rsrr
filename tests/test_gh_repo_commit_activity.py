@@ -47,19 +47,25 @@ def _mock_github_get(repo_pages):
 @pytest.mark.asyncio
 async def test_single_repo():
     ctx = _make_context(["https://github.com/org/repo-a"])
-    ctx.github_get = _mock_github_get({
-        "org/repo-a": [
-            [
-                _commit("Alice", "alice@example.com", "alice-gh"),
-                _commit("Bob", "bob@example.com", "bob-gh"),
+    ctx.github_get = _mock_github_get(
+        {
+            "org/repo-a": [
+                [
+                    _commit("Alice", "alice@example.com", "alice-gh"),
+                    _commit("Bob", "bob@example.com", "bob-gh"),
+                ],
+                [],
             ],
-            [],
-        ],
-    })
+        }
+    )
     result = await Check(ctx).run()
     assert result["https://github.com/org/repo-a"]["commit_count"] == 2
     committers = result["https://github.com/org/repo-a"]["committers"]
-    assert {"name": "Alice", "email": "alice@example.com", "login": "alice-gh"} in committers
+    assert {
+        "name": "Alice",
+        "email": "alice@example.com",
+        "login": "alice-gh",
+    } in committers
     assert {"name": "Bob", "email": "bob@example.com", "login": "bob-gh"} in committers
 
 
@@ -67,12 +73,14 @@ async def test_single_repo():
 async def test_commit_without_github_author():
     """When commit.author is null (no linked GitHub account), login is empty."""
     ctx = _make_context(["https://github.com/org/repo-a"])
-    ctx.github_get = _mock_github_get({
-        "org/repo-a": [
-            [_commit("Alice", "alice@example.com")],
-            [],
-        ],
-    })
+    ctx.github_get = _mock_github_get(
+        {
+            "org/repo-a": [
+                [_commit("Alice", "alice@example.com")],
+                [],
+            ],
+        }
+    )
     result = await Check(ctx).run()
     committers = result["https://github.com/org/repo-a"]["committers"]
     assert committers == [{"name": "Alice", "email": "alice@example.com", "login": ""}]
@@ -81,15 +89,17 @@ async def test_commit_without_github_author():
 @pytest.mark.asyncio
 async def test_deduplicates_committers_by_email():
     ctx = _make_context(["https://github.com/org/repo-a"])
-    ctx.github_get = _mock_github_get({
-        "org/repo-a": [
-            [
-                _commit("Alice", "alice@example.com", "alice-gh"),
-                _commit("Alice A.", "alice@example.com", "alice-gh"),
+    ctx.github_get = _mock_github_get(
+        {
+            "org/repo-a": [
+                [
+                    _commit("Alice", "alice@example.com", "alice-gh"),
+                    _commit("Alice A.", "alice@example.com", "alice-gh"),
+                ],
+                [],
             ],
-            [],
-        ],
-    })
+        }
+    )
     result = await Check(ctx).run()
     assert result["https://github.com/org/repo-a"]["commit_count"] == 2
     committers = result["https://github.com/org/repo-a"]["committers"]
@@ -102,9 +112,11 @@ async def test_multiple_pages():
     page1 = [_commit("Alice", "alice@example.com", "alice-gh")] * 100
     page2 = [_commit("Bob", "bob@example.com", "bob-gh")] * 50
     ctx = _make_context(["https://github.com/org/repo-a"])
-    ctx.github_get = _mock_github_get({
-        "org/repo-a": [page1, page2, []],
-    })
+    ctx.github_get = _mock_github_get(
+        {
+            "org/repo-a": [page1, page2, []],
+        }
+    )
     result = await Check(ctx).run()
     assert result["https://github.com/org/repo-a"]["commit_count"] == 150
     committers = result["https://github.com/org/repo-a"]["committers"]

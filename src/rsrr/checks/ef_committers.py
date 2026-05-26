@@ -28,12 +28,13 @@ class Check(BaseCheck):
                     response = await client.get(url)
                     response.raise_for_status()
                     details = response.json()
-                    results.append({
-                                "first_name": details["first_name"],
-                                "last_name": details["last_name"],
-                                "github_handle": details["github_handle"]
-                            }
-                        )
+                    results.append(
+                        {
+                            "first_name": details["first_name"],
+                            "last_name": details["last_name"],
+                            "github_handle": details["github_handle"],
+                        }
+                    )
                 except httpx.HTTPStatusError as e:
                     logger.error(f"{username}: {e}")
 

@@ -11,7 +11,9 @@ GL_PROJECT = "eclipsefdn/security/vulnerabilities"
 
 class Check(BaseCheck):
     name = "EF CVEs"
-    comment = "Returns advisories from the EF vulnerabilities repo matching the project ID"
+    comment = (
+        "Returns advisories from the EF vulnerabilities repo matching the project ID"
+    )
 
     async def run(self) -> list[dict[str, Any]]:
         if not self.ctx.ef_project_id:
