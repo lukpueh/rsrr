@@ -29,4 +29,4 @@ class Check(BaseCheck):
         if proc.returncode > 0 and proc.returncode < 11:
             raise RuntimeError(f"zizmor failed: {stderr.decode().strip()}")
 
-        return stdout.strip().decode()
+        return stdout.strip().decode().splitlines()

@@ -27,4 +27,4 @@ class Check(BaseCheck):
         if proc.returncode != 0:
             raise RuntimeError(f"scorecard failed: {stderr.decode().strip()}")
 
-        return stdout.strip().decode()
+        return stdout.strip().decode().splitlines()

@@ -11,7 +11,7 @@ class Check(BaseCheck):
     depends_on = ["ef_project"]
 
     async def run(self) -> list[str]:
-        project = self.ctx.data["ef_project"][0]
+        project = self.ctx.data["ef_project"]
         ignored = set(project.get("github", {}).get("ignored_repos", []))
 
         # Collect explicitly listed repos

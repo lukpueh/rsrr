@@ -13,7 +13,7 @@ class Check(BaseCheck):
     depends_on = ["ef_project"]
 
     async def run(self) -> list[dict]:
-        project = self.ctx.data["ef_project"][0]
+        project = self.ctx.data["ef_project"]
         committers = project.get("committers", [])
 
         results = []
@@ -27,7 +27,13 @@ class Check(BaseCheck):
                 try:
                     response = await client.get(url)
                     response.raise_for_status()
-                    results.append(response.json())
+                    details = response.json()
+                    results.append({
+                                "first_name": details["first_name"],
+                                "last_name": details["last_name"],
+                                "github_handle": details["github_handle"]
+                            }
+                        )
                 except httpx.HTTPStatusError as e:
                     logger.error(f"{username}: {e}")
 
