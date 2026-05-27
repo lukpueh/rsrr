@@ -13,6 +13,7 @@ src/rsrr/
   cli.py             # Click CLI: `rsrr list` and `rsrr run`
   runner.py          # Discovers checks, runs them in dependency waves (asyncio)
 tests/
+  test_base.py       # Context helper tests (e.g. github_get)
   test_cli.py        # CLI integration tests (Click CliRunner, mocked checks)
   test_runner.py     # Runner unit tests (discover, run, dependencies)
 ```
@@ -42,18 +43,22 @@ class Check(BaseCheck):
 ## Key Patterns
 
 - Use `httpx.AsyncClient` for all HTTP calls (project uses httpx)
-- GitHub API calls should use `headers={"Accept": "application/vnd.github.v3+json"}`
-- GitHub API auth: pass token via `Authorization: Bearer <token>` header (check env for GH_TOKEN)
-- `ctx.ef_project_id_normalized` replaces `.` with `_` (for module naming)
-- EF project API: `https://projects.eclipse.org/api/projects/{project_id}`
+- For GitHub API requests, prefer `await self.ctx.github_get(url)` — it sets the
+  `Accept: application/vnd.github.v3+json` header and an `Authorization: Bearer <token>`
+  header when `ctx.gh_token` is set, and raises on non-2xx responses
+- `ctx.ef_project_id_normalized` replaces `.` with `_` (required for the EF project API URL,
+  e.g. `rt.ecf` → `rt_ecf`)
+- EF project API: `https://projects.eclipse.org/api/projects/{ef_project_id_normalized}`
 - EF project result is a list; `result[0]["github"]["org"]` gives the GitHub org name
 
 ## Commands
 
 ```bash
 uv run rsrr list              # list all available checks
-uv run rsrr run --ef-project-id technology.csi  # run all checks
+uv run rsrr run --ef-project-id technology.csi  # run all checks (JSON to stdout)
 uv run rsrr run --ef-project-id technology.csi ef_project gh_default_security_policy  # run specific checks
+uv run rsrr run --ef-project-id technology.csi --ctx-data result.json  # incremental: skip checks already in result.json, merge new results back
+uv run rsrr run -v --ef-project-id technology.csi  # -v enables INFO logging on the rsrr package
 
 just lint        # ruff check + format check
 just lint-fix    # ruff check --fix + format
@@ -73,10 +78,11 @@ uv run pytest tests/ -v        # run tests with verbose output
 
 ## Testing
 
-Tests cover `cli.py` and `runner.py` — not individual check implementations.
+Tests cover `cli.py`, `runner.py`, and `base.py` — not individual check implementations.
 
 - **CLI tests** (`tests/test_cli.py`): use `click.testing.CliRunner` with `unittest.mock.patch` on `get_all_checks` to inject fake check classes. No network calls.
 - **Runner tests** (`tests/test_runner.py`): use simple `BaseCheck` subclasses defined inline. `test_discover_checks` writes temp modules to `tmp_path` and runs real discovery.
+- **Base tests** (`tests/test_base.py`): exercise `Context.github_get` with `httpx.AsyncClient` mocked, asserting headers (incl. `Authorization` when `gh_token` is set).
 - Async tests use `@pytest.mark.asyncio` (requires `pytest-asyncio`; asyncio mode configured as `strict` in `pyproject.toml`).
 
 ## Sandbox / CI Environment
@@ -98,5 +104,4 @@ Set `UV_PROJECT_ENVIRONMENT` before any `uv run`/`uv sync` command.
 
 ## Directory Notes
 
-- `research/` — shell scripts for exploring APIs (not part of the package)
 - `.venv/` — host-managed by uv, do not modify from sandbox/CI

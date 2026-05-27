@@ -18,7 +18,7 @@ Check results are printed as JSON to stdout.
 rsrr run [opts]
 
 # Run specific checks
-rsrr run --ef-project-id technology.csi -- ef_committers_count
+rsrr run --ef-project-id technology.csi -- ef_committers
 
 # List available checks
 rsrr list
@@ -31,7 +31,7 @@ Create a new file in `src/rsrr/checks/` with a descriptive name, e.g.
 `ultimate_answer.py`, and add a `Check` implementation, e.g.
 
 ```python
-from .base import BaseCheck
+from ..base import BaseCheck
 
 class Check(BaseCheck):
     name = "Ultimate Answer"

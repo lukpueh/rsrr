@@ -62,7 +62,9 @@ async def run_checks(checks: dict[str, type[BaseCheck]], ctx: Context):
 
     Checks are run in waves. Each wave runs checks whose dependencies have
     all completed. If a check fails, all checks that depend on it (directly
-    or transitively) are skipped.
+    or transitively) are skipped. Checks whose results are already present
+    in ``ctx.data`` are treated as completed and not re-run (this satisfies
+    dependencies on them too).
     """
     # Treat checks with pre-populated data as already completed
     completed: set[str] = set()
