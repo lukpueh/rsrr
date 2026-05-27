@@ -37,6 +37,8 @@ by the checks in this tool:
   [Create token](https://github.com/settings/tokens/new?description=rsrr&scopes=repo,security_events)
   (scopes: `repo`, `security_events`)
 
+  *Alternative: Mint a token from an active `gh` session, and pass it like so: `--gh-token $(gh auth token)`*
+
 - **GitLab** (eclipse.org instance) — needed to search the
   `security/vulnerability-reports` project. Pass via `--gl-token` or
   `GL_TOKEN`:
@@ -46,17 +48,26 @@ by the checks in this tool:
 
 
 ## Usage Example
-
 ```bash
 
-rsrr --verbose run \
+uv run rsrr --verbose run \
     --gh-token $(gh auth token) \
     --gl-token ${GL_TOKEN} \
-    --ef-project-id technology.csi \  # Review "Common Security Infrastructure" project
-    --gh-repo eclipse-csi/otterdog \  # ... and focus on "Otterdog" repo
-    --gl-vuln-kw otterdog --gl-vuln-kw self-service \  # Exemplary keywords to search vulnerability-reports
+    --ef-project-id technology.csi \
+    --gh-repo eclipse-csi/otterdog \
+    --gl-vuln-kw otterdog --gl-vuln-kw self-service \
     --ctx-data otterdog-rsr.json
 ```
+
+### Explanation
+
+- `--gh-token`: use `gh` session, as alternative for creating a token
+- `--gl-token`: redundant use of option for demo purpose, `GL_TOKEN` env var is enough
+- `--ef-project-id`: Review "Common Security Infrastructure" project
+- `--gh-repo`: Focus on Otterdog repo for detailed checks
+- `--gl-vuln-kw`: Search for vulnerability-reports with 'otterdog' or 'self-service' in title or description
+- `--ctx-data`: Save output to otterdog-rsr.json
+
 
 ## Adding a new Check
 
