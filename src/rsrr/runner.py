@@ -2,7 +2,10 @@ import asyncio
 import importlib
 import pkgutil
 import logging
+import time
 from pathlib import Path
+
+import click
 
 from .base import BaseCheck, Context
 
@@ -40,13 +43,17 @@ def discover_checks(
 
 async def run_check(check_id: str, check_cls: type[BaseCheck], ctx: Context) -> bool:
     """Run a single check and return whether it succeeded."""
+    click.echo(f"  ... {check_id}", err=True)
+    start = time.monotonic()
     check = check_cls(ctx)
     try:
         value = await check.run()
         ctx.data[check_id] = value
+        click.echo(f"   ok {check_id} ({time.monotonic() - start:.1f}s)", err=True)
         return True
     except Exception as e:
         logger.error(f"{check_id}: {e}")
+        click.echo(f"  err {check_id} ({time.monotonic() - start:.1f}s)", err=True)
         return False
 
 
