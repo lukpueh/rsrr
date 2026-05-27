@@ -25,6 +25,39 @@ rsrr list
 
 ```
 
+## Access tokens
+
+Several checks require API tokens. Create them with the minimum scopes needed
+by the checks in this tool:
+
+- **GitHub** (classic personal access token) — needed for Dependabot alerts,
+  security advisories, and private-vulnerability-reporting endpoints. Pass via
+  `--gh-token` or `GH_TOKEN`:
+
+  [Create token](https://github.com/settings/tokens/new?description=rsrr&scopes=repo,security_events)
+  (scopes: `repo`, `security_events`)
+
+- **GitLab** (eclipse.org instance) — needed to search the
+  `security/vulnerability-reports` project. Pass via `--gl-token` or
+  `GL_TOKEN`:
+
+  [Create token](https://gitlab.eclipse.org/-/user_settings/personal_access_tokens?name=rsrr&scopes=read_api)
+  (scope: `read_api`)
+
+
+## Usage Example
+
+```bash
+
+rsrr --verbose run \
+    --gh-token $(gh auth token) \
+    --gl-token ${GL_TOKEN} \
+    --ef-project-id technology.csi \  # Review "Common Security Infrastructure" project
+    --gh-repo eclipse-csi/otterdog \  # ... and focus on "Otterdog" repo
+    --gl-vuln-kw otterdog --gl-vuln-kw self-service \  # Exemplary keywords to search vulnerability-reports
+    --ctx-data otterdog-rsr.json
+```
+
 ## Adding a new Check
 
 Create a new file in `src/rsrr/checks/` with a descriptive name, e.g.
