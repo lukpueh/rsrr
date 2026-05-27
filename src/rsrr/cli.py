@@ -24,12 +24,13 @@ def get_all_checks() -> dict:
 def main(ctx: click.Context, verbose: bool) -> None:
     """Rapid Security Review Runner -- Runs an extensible set of checks for
     Eclipse Foundation Rapid Security Reviews."""
-    logging.basicConfig(
-        level=logging.INFO if verbose else logging.WARNING,
-        format="%(levelname)s: %(message)s",
-        stream=sys.stderr,
-        force=True,
-    )
+    handler = logging.StreamHandler(sys.stderr)
+    handler.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
+    pkg_logger = logging.getLogger("rsrr")
+    pkg_logger.handlers.clear()
+    pkg_logger.addHandler(handler)
+    pkg_logger.setLevel(logging.INFO if verbose else logging.WARNING)
+    pkg_logger.propagate = False
 
     if ctx.invoked_subcommand is None:
         click.echo(ctx.get_help())
