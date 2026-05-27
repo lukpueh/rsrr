@@ -23,4 +23,13 @@ class Check(BaseCheck):
             advisories.extend(response.json())
             url = response.links.get("next", {}).get("url")
 
-        return advisories
+        return [
+            {
+                "html_url": a["html_url"],
+                "summary": a["summary"],
+                "severity": a["severity"],
+                "created_at": a["created_at"],
+                "published_at": a["published_at"],
+            }
+            for a in advisories
+        ]

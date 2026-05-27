@@ -28,6 +28,12 @@ class Check(BaseCheck):
                 year_counts[published[:4]] += 1
 
         return {
-            "releases": releases,
+            "releases": [
+                {
+                    "html_url": r["html_url"],
+                    "published_at": r["published_at"],
+                }
+                for r in releases
+            ],
             "releases_per_year": dict(sorted(year_counts.items())),
         }

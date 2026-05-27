@@ -23,4 +23,11 @@ class Check(BaseCheck):
             alerts.extend(response.json())
             url = response.links.get("next", {}).get("url")
 
-        return alerts
+        return [
+            {
+                "html_url": a["html_url"],
+                "state": a["state"],
+                "created_at": a["created_at"],
+            }
+            for a in alerts
+        ]
