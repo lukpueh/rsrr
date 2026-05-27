@@ -47,7 +47,7 @@ def test_main_no_subcommand_shows_help():
 
 
 def test_verbose_enables_info_logging():
-    """The -v flag sets logging level to INFO."""
+    """The -v flag sets the rsrr package logger to INFO."""
     import logging as _logging
 
     with _patch_checks():
@@ -58,7 +58,7 @@ def test_verbose_enables_info_logging():
         )
 
     assert result.exit_code == 0
-    assert _logging.getLogger().level == _logging.INFO
+    assert _logging.getLogger("rsrr").level == _logging.INFO
 
 
 def test_list_shows_checks():
@@ -78,7 +78,7 @@ def test_run_all_checks_to_stdout():
         result = runner.invoke(main, ["run", "--ef-project-id", "test.project"])
 
     assert result.exit_code == 0
-    data = json.loads(result.output)
+    data = json.loads(result.stdout)
     assert data["check_a"] == "result_a"
     assert data["check_b"] == "result_b"
 
@@ -108,7 +108,7 @@ def test_run_specific_check():
         )
 
     assert result.exit_code == 0
-    data = json.loads(result.output)
+    data = json.loads(result.stdout)
     assert data["check_a"] == "result_a"
     assert "check_b" not in data
 
